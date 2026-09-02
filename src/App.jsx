@@ -375,6 +375,7 @@ export default function DeimosWhoPortfolio() {
 
       <footer className="border-t border-white/10 py-8 text-center text-white/40 text-sm backdrop-blur-xl bg-black/20">
         © {new Date().getFullYear()} deimos_who. All rights reserved.
+        <VisitCounter />
       </footer>
     </div>
   );
@@ -527,5 +528,63 @@ function CopyButton({ value, label, className }) {
     >
       {copied ? 'Copied!' : label}
     </button>
+  );
+}
+
+/**
+ * Running visit tally. GitHub Pages only serves static files, so the count
+ * lives on Abacus (https://abacus.jasoncameron.dev) — a free keyed counter API.
+ * `/hit` bumps the total and returns it, `/get` only reads it.
+ *
+ * One hit per browser session, so a refresh doesn't inflate the number, and
+ * local dev never counts at all.
+ */
+const COUNTER_ORIGIN = 'https://abacus.jasoncameron.dev';
+const COUNTER_PATH = 'deimos-who-portfolio-7f3a/visits';
+const COUNTED_FLAG = 'dw:visit-counted';
+
+function VisitCounter() {
+  const [visits, setVisits] = useState(null);
+  const fired = useRef(false);
+
+  useEffect(() => {
+    // StrictMode runs effects twice in development — only let the first through
+    // so the tally never gets double-counted.
+    if (fired.current) return;
+    fired.current = true;
+
+    const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
+
+    let alreadyCounted = true;
+    try {
+      alreadyCounted = sessionStorage.getItem(COUNTED_FLAG) === '1';
+      if (!alreadyCounted) sessionStorage.setItem(COUNTED_FLAG, '1');
+    } catch {
+      // Storage blocked (private mode, cookies disabled) — stay read-only so a
+      // locked-down browser can't bump the count on every single refresh.
+    }
+
+    const controller = new AbortController();
+    const action = alreadyCounted || isLocal ? 'get' : 'hit';
+
+    fetch(`${COUNTER_ORIGIN}/${action}/${COUNTER_PATH}`, { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(res.status))))
+      .then((data) => {
+        if (typeof data.value === 'number') setVisits(data.value);
+      })
+      .catch(() => {
+        // Service down, offline, or blocked by a tracker blocker — render
+        // nothing rather than a broken placeholder.
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  if (visits === null) return null;
+
+  return (
+    <div className="mt-2 text-xs text-white/30 tabular-nums">
+      {visits.toLocaleString()} {visits === 1 ? 'visit' : 'visits'}
+    </div>
   );
 }
