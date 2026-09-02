@@ -77,6 +77,11 @@ const MODELS = [
     description: 'Three-bladed throwing star with twisted blades and a bold accent ring.',
     src: asset('images/low-poly-shuriken.png'),
   },
+  {
+    title: 'Flower Set',
+    description: 'Assorted stylised flowers — daisies, lilies, a calla and a dandelion — modelled as a reusable set-dressing kit.',
+    src: asset('images/low-poly-flowers.png'),
+  },
 ];
 
 export default function DeimosWhoPortfolio() {
