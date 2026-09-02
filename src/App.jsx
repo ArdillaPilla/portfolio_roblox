@@ -39,6 +39,46 @@ const FEATURED = {
   tags: ['Flight system', 'Warp & landing', 'Resource extraction', 'Custom HUD'],
 };
 
+const MODELS = [
+  {
+    title: 'Boutique Mannequin',
+    description: 'Dress form modelled to match a concept reference, shown beside the source art.',
+    src: asset('images/low-poly-mannequin.png'),
+    // Wide reference-vs-model capture, so it gets a double-width slot.
+    wide: true,
+  },
+  {
+    title: 'Cartoon Gemstone',
+    description: 'Faceted gem with a translucent shader and clean, readable topology.',
+    src: asset('images/low-poly-gemstone.png'),
+  },
+  {
+    title: 'Crossbow',
+    description: 'Stylised crossbow with a chunky silhouette that stays legible at gameplay distance.',
+    src: asset('images/low-poly-crossbow.png'),
+  },
+  {
+    title: 'Jack-o’-Lantern',
+    description: 'Carved pumpkin with a soft, rounded low-poly body for seasonal events.',
+    src: asset('images/low-poly-pumpkin.png'),
+  },
+  {
+    title: 'Cartoon Bomb',
+    description: 'Classic round bomb with a twisted rope fuse modelled along a curve.',
+    src: asset('images/low-poly-bomb.png'),
+  },
+  {
+    title: 'Retro TV',
+    description: 'Old CRT set with rabbit-ear antenna and a subtly curved screen.',
+    src: asset('images/low-poly-old-tv.png'),
+  },
+  {
+    title: 'Shuriken',
+    description: 'Three-bladed throwing star with twisted blades and a bold accent ring.',
+    src: asset('images/low-poly-shuriken.png'),
+  },
+];
+
 export default function DeimosWhoPortfolio() {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -177,7 +217,7 @@ export default function DeimosWhoPortfolio() {
               </div>
 
               <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-5">
-                <div className="text-3xl font-bold">Hundreds</div>
+                <div className="text-3xl font-bold">100+</div>
                 <div className="text-sm text-white/50 mt-1">3D Models</div>
               </div>
 
@@ -248,19 +288,27 @@ export default function DeimosWhoPortfolio() {
           <FeaturedVideo item={FEATURED} />
 
           <div className="mt-28">
-            <div className="rounded-[40px] border border-white/10 bg-white/[0.04] backdrop-blur-2xl p-10 md:p-16 text-center">
-              <div className="text-sm uppercase tracking-[0.3em] text-purple-300/70 mb-4">
-                Blender
+            <div className="mb-12 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+              <div>
+                <div className="text-sm uppercase tracking-[0.3em] text-purple-300/70 mb-4">
+                  Blender
+                </div>
+
+                <h3 className="text-3xl md:text-4xl font-black tracking-tight">
+                  Hundreds of high quality models made.
+                </h3>
               </div>
 
-              <h3 className="text-3xl md:text-5xl font-black tracking-tight">
-                Hundreds of high quality models made.
-              </h3>
-
-              <p className="mt-6 text-white/45 text-sm max-w-md mx-auto leading-relaxed">
+              <p className="text-white/45 text-sm max-w-sm leading-relaxed">
                 Low-poly game-ready assets modelled in Blender, built for clean
-                silhouettes and cheap in-engine rendering.
+                silhouettes and cheap in-engine rendering. A few examples:
               </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-8">
+              {MODELS.map((model) => (
+                <ModelCard key={model.title} model={model} />
+              ))}
             </div>
           </div>
         </section>
@@ -414,6 +462,34 @@ function FeaturedVideo({ item }) {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Renders sit on a tile matching the Blender viewport grey they were captured
+ * on, and are contained rather than cropped so nothing gets cut off.
+ */
+function ModelCard({ model }) {
+  return (
+    <div className={`group rounded-[32px] overflow-hidden border border-white/10 bg-white/[0.04] backdrop-blur-xl hover:border-purple-400/40 transition-all duration-300 hover:-translate-y-1 ${model.wide ? 'sm:col-span-2' : ''}`}>
+      <div className={`${model.wide ? 'aspect-[16/7] sm:aspect-[21/9]' : 'aspect-[4/3]'} relative overflow-hidden bg-[#3b3b3b]`}>
+        <img
+          className="absolute inset-0 w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+          src={model.src}
+          alt={`${model.title} — low-poly 3D model in Blender`}
+          loading="lazy"
+        />
+
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.25),transparent_55%)]" />
+      </div>
+
+      <div className="p-6 border-t border-white/10">
+        <div className="text-lg font-semibold">{model.title}</div>
+        <p className="mt-2 text-sm text-white/45 leading-relaxed">
+          {model.description}
+        </p>
       </div>
     </div>
   );
