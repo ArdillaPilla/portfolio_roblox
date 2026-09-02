@@ -456,44 +456,46 @@ function CopyButton({ value, label, className }) {
 }
 
 /**
- * Running visit tally. GitHub Pages only serves static files, so there is
- * nowhere to keep a number server-side — the count lives on Abacus
- * (https://abacus.jasoncameron.dev), a free keyed counter API. `/hit` bumps the
- * total and returns the new value.
+ * Running visit tally, read from GoatCounter's public counter endpoint.
  *
- * Every page load counts, including refreshes. Local dev counts too, but
- * against a separate `-dev` key, so localhost behaves exactly like production
- * without inflating the real number.
+ * Counting itself is done by the gc.zgo.at snippet in index.html, which also
+ * feeds the private dashboard; it declines to count on localhost and file://
+ * URLs on its own, so dev traffic stays out of the numbers. This component only
+ * reads the published total.
+ *
+ * The site code lives in exactly one place — the script tag's data attribute —
+ * and the JSON URL is derived from it, so there is nothing to keep in sync.
  */
-const COUNTER_ORIGIN = 'https://abacus.jasoncameron.dev';
-const COUNTER_NAMESPACE = 'deimos-who-portfolio-7f3a';
-const LOCAL_HOSTS = ['localhost', '127.0.0.1', '[::1]'];
+function goatCounterTotalUrl() {
+  const el = document.querySelector('[data-goatcounter]');
+  const endpoint = el && el.dataset.goatcounter;
+
+  // Endpoint looks like https://<code>.goatcounter.com/count
+  const suffix = '/count';
+  if (!endpoint || !endpoint.endsWith(suffix)) return null;
+
+  return endpoint.slice(0, -suffix.length) + '/counter/TOTAL.json';
+}
 
 function VisitCounter() {
   const [visits, setVisits] = useState(null);
-  const fired = useRef(false);
 
   useEffect(() => {
-    // StrictMode runs effects twice in development — only let the first
-    // through, or every dev load would count twice.
-    if (fired.current) return;
-    fired.current = true;
-
-    const isLocal = LOCAL_HOSTS.includes(window.location.hostname);
-    const key = isLocal ? 'visits-dev' : 'visits';
+    const url = goatCounterTotalUrl();
+    if (!url) return;
 
     const controller = new AbortController();
 
-    fetch(`${COUNTER_ORIGIN}/hit/${COUNTER_NAMESPACE}/${key}`, {
-      signal: controller.signal,
-    })
+    fetch(url, { signal: controller.signal })
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(res.status))))
       .then((data) => {
-        if (typeof data.value === 'number') setVisits(data.value);
+        // `count` arrives pre-formatted with thousands separators, so it is
+        // rendered as-is rather than parsed back into a number.
+        if (typeof data.count === 'string') setVisits(data.count);
       })
       .catch(() => {
-        // Offline, service down, or blocked by a tracker blocker — render
-        // nothing rather than a broken placeholder.
+        // Offline, public counts switched off, or blocked by a tracker
+        // blocker — render nothing rather than a broken placeholder.
       });
 
     return () => controller.abort();
@@ -503,7 +505,7 @@ function VisitCounter() {
 
   return (
     <div className="mt-2 text-xs text-white/30 tabular-nums">
-      {visits.toLocaleString()} {visits === 1 ? 'visit' : 'visits'}
+      {visits} {visits === '1' ? 'visit' : 'visits'}
     </div>
   );
 }
