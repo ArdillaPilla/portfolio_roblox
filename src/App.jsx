@@ -366,8 +366,7 @@ export default function DeimosWhoPortfolio() {
                 <li>USD or Robux, whichever suits you</li>
                 <li>Half up front on anything over $60</li>
                 <li>Balance on delivery of the final files</li>
-                <li>Robux quoted at R
- ≈ $0.0038</li>
+                <li>Robux quoted at R$1 ≈ $0.0038, grossed up for the 30% cut</li>
                 <li>Group payouts available for bigger jobs</li>
               </ul>
             </div>
@@ -564,9 +563,13 @@ function ModelCard({ model }) {
  * USD, `mult` values scale them, and extras are flat per-model add-ons.
  *
  * Robux figures are shown alongside USD at the rate the Roblox talent boards
- * conventionally quote — R$1 ≈ $0.0038.
+ * conventionally quote — R$1 ≈ $0.0038 — then grossed up for the 30% Roblox
+ * takes out of a gamepass or marketplace sale. Being paid R$10,000 only puts
+ * R$7,000 in my pocket, so quoting the raw conversion would quietly cut every
+ * Robux job by a third.
  */
 const USD_PER_ROBUX = 0.0038;
+const ROBLOX_CUT = 0.3;
 
 // `base: null` means "no list price" — the estimate turns into a conversation
 // instead of a number, which is the honest answer for work I have not scoped.
@@ -647,7 +650,8 @@ function estimate({ typeId, complexityId, textureId, deadlineId, extraIds, qty }
   };
 }
 
-const toRobux = (usd) => Math.round(usd / USD_PER_ROBUX / 50) * 50;
+const toRobux = (usd) =>
+  Math.ceil(usd / USD_PER_ROBUX / (1 - ROBLOX_CUT) / 50) * 50;
 const money = (n) => n.toLocaleString('en-US');
 
 /**
@@ -851,6 +855,11 @@ function PricingEstimator() {
 
               <div className="mt-2 text-sm text-white/50 tabular-nums">
                 or R${money(toRobux(quote.total))} in Robux
+              </div>
+
+              <div className="mt-1.5 text-xs text-white/35 leading-relaxed">
+                Larger because Roblox keeps 30% of the sale — this is what nets the
+                same as ${money(quote.total)}.
               </div>
 
               <dl className="mt-6 space-y-2 text-sm border-t border-white/10 pt-5">
